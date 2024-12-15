@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VOIA - Voyage of Thoughts</title>
+  <style>
+    @font-face {
+      font-family: 'Special Elite';
+      src: url('../SpecialElite.ttf') format('truetype');
+    }
+
+    /* General styles */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Special Elite', monospace;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      background-size: 400% 400%;
+      animation: gradientBG 10s ease infinite;
+      color: #fff;
+      text-align: center;
+    }
+
+    @keyframes gradientBG {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    /* Consistent container styling */
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      position: relative;
+    }
+
+    .container>*:not(.chat-box):not(.dummy-answer) {
+      position: relative;
+      z-index: 1;
+      max-width: 60%;
+      margin: 0 auto;
+    }
+
+    .chat-box {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    h1 {
+      font-size: 60px;
+      margin-bottom: 20px;
+      overflow: hidden;
+      white-space: nowrap;
+      margin: 0 auto;
+      animation: typing 2s steps(40, end);
+    }
+
+    .tagline {
+      overflow: hidden;
+      white-space: nowrap;
+      margin: 0 auto;
+      animation: typing 2s steps(40, end);
+      animation-delay: 2s;
+      opacity: 0;
+      animation-fill-mode: forwards;
+    }
+
+    .haiku {
+      font-size: 18px;
+      line-height: 1.8;
+      font-style: italic;
+      margin-bottom: 40px;
+      white-space: pre-line;
+      opacity: 0;
+      animation: fadeIn 1s forwards;
+      animation-delay: 1s;
+      position: relative;
+      text-shadow: 0 0 0 rgba(135, 206, 235, 0);
+      transition: text-shadow 0.3s ease;
+    }
+
+    .haiku-line {
+      overflow: hidden;
+      white-space: nowrap;
+      margin: 0 auto;
+      opacity: 0;
+      position: relative;
+      animation:
+        typing 2s steps(40, end),
+        fadeIn 0.1s forwards,
+        float 6s ease-in-out infinite;
+      animation-fill-mode: forwards;
+    }
+
+    .haiku-line:nth-child(1) {
+      animation-delay: 1s;
+      animation-duration: 2s, 0.1s, 6s;
+    }
+
+    .haiku-line:nth-child(2) {
+      animation-delay: 2s;
+      animation-duration: 2s, 0.1s, 7s;
+    }
+
+    .haiku-line:nth-child(3) {
+      animation-delay: 3s;
+      animation-duration: 2s, 0.1s, 8s;
+    }
+
+    .button {
+      display: inline-block;
+      padding: 15px 30px;
+      background: #24243e;
+      border: 2px solid #fff;
+      color: #fff;
+      cursor: pointer;
+      margin: 15px;
+      border-radius: 8px;
+      text-transform: uppercase;
+      transition: all 0.3s ease;
+      font-size: 20px;
+      width: 250px;
+      letter-spacing: 2px;
+      font-family: 'Special Elite', monospace;
+    }
+
+    .button:hover {
+      background: #ffa500;
+      color: #000;
+      transform: scale(1.05);
+      transition: all 0.3s ease;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Add typewriter animation */
+    @keyframes typing {
+      from {
+        width: 0
+      }
+
+      to {
+        width: 100%
+      }
+    }
+
+    .typewriter {
+      overflow: hidden;
+      white-space: nowrap;
+      margin: 0 auto;
+      animation:
+        typing 3.5s steps(40, end);
+    }
+
+    /* Add fade in animation */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        text-shadow: 0 0 0px rgba(255, 255, 255, 0);
+      }
+
+      to {
+        opacity: 1;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      }
+    }
+
+    /* Add floating animation */
+    @keyframes float {
+      0% {
+        transform: translateY(0px) translateX(0px) rotate(0deg);
+      }
+
+      25% {
+        transform: translateY(-10px) translateX(5px) rotate(1deg);
+      }
+
+      50% {
+        transform: translateY(0px) translateX(-5px) rotate(-1deg);
+      }
+
+      75% {
+        transform: translateY(10px) translateX(5px) rotate(1deg);
+      }
+
+      100% {
+        transform: translateY(0px) translateX(0px) rotate(0deg);
+      }
+    }
+
+    /* Update falling text styles */
+    .falling-text-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 999;
+      display: none;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    }
+
+    .falling-text {
+      position: absolute;
+      width: max-content;
+      text-align: left;
+      font-family: 'Special Elite', monospace;
+      padding: 10px;
+      margin: 40px 0;
+      line-height: 1.5;
+      font-style: italic;
+      animation: fallDown 8s linear infinite;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    /* Update falling animation */
+    @keyframes fallDown {
+      0% {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+
+      100% {
+        transform: translateY(100vh);
+        opacity: 1;
+      }
+    }
+
+    /* Glow effect */
+    .glow {
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+
+    /* Animation for "Choose Your Expression" */
+    .fly-in {
+      display: inline-block;
+      opacity: 0;
+      animation: flyIn 6s forwards;
+    }
+
+    @keyframes flyIn {
+      0% {
+        transform: translate(calc(100vw * var(--random-x)), calc(100vh * var(--random-y))) rotate(360deg);
+        opacity: 0;
+      }
+
+      100% {
+        transform: translate(0, 0) rotate(0deg);
+        opacity: 1;
+      }
+    }
+
+    .expression-container {
+      position: relative;
+      width: 100%;
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    /* Dummy answers animation */
+    .dummy-answer {
+      position: absolute;
+      font-size: 14px;
+      color: rgba(173, 216, 230, 0.6);
+      opacity: 0;
+      z-index: 0;
+      width: 200px;
+    }
+
+    .dummy-answer:nth-child(odd) {
+      left: 5%;
+      transform: translateX(-50%);
+    }
+
+    .dummy-answer:nth-child(even) {
+      right: 5%;
+      transform: translateX(50%);
+    }
+
+    /* Input text box style */
+    textarea {
+      width: 60%;
+      height: 100px;
+      background-color: rgba(173, 216, 230, 0.3);
+      padding: 15px;
+      border: none;
+      border-radius: 15px;
+      resize: none;
+      margin: 20px 0;
+      font-family: 'Special Elite', monospace;
+      font-size: 16px;
+      color: #fff;
+    }
+
+    /* Update question text styling */
+    #textQuestion {
+      font-size: 24px;
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    /* Audio record button styling */
+    .record-button {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(173, 216, 230, 0.3);
+      border: 2px solid #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      margin: 20px auto;
+      transition: all 0.3s ease;
+    }
+
+    .record-button:hover {
+      background: rgba(255, 165, 0, 0.3);
+      transform: scale(1.1);
+    }
+
+    .record-icon {
+      width: 20px;
+      height: 20px;
+      background: #fff;
+      border-radius: 50%;
+    }
+
+    /* Poll buttons styling */
+    .poll-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    .poll-button {
+      padding: 10px 30px;
+      background: rgba(173, 216, 230, 0.3);
+      border: 2px solid #fff;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Special Elite', monospace;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      width: 120px;
+    }
+
+    .poll-button:hover {
+      background: rgba(255, 165, 0, 0.3);
+      transform: scale(1.05);
+    }
+
+    /* Update container for mode page */
+    #mode.container {
+      justify-content: flex-start;
+      padding-top: 20px;
+    }
+
+    /* Mode page button container */
+    #mode .button-container {
+      margin-top: 60px;
+      gap: 20px;
+    }
+
+    /* Ensure text is visible */
+    #expression {
+      font-size: 48px;
+      margin: 0;
+      padding: 0 20px;
+      white-space: nowrap;
+      overflow: visible;
+      width: auto;
+    }
+
+    /* Update polls container spacing */
+    #polls.container {
+      justify-content: flex-start;
+      padding-top: 40px;
+      gap: 40px; /* Add consistent gap between elements */
+    }
+
+    /* Poll question spacing */
+    #pollQuestion {
+      font-size: 24px;
+      margin: 60px 0;
+    }
+
+    /* Poll buttons container spacing */
+    .poll-buttons {
+      display: flex;
+      gap: 30px; /* Increase gap between Yes/No buttons */
+      justify-content: center;
+      margin: 20px 0 60px 0;
+    }
+
+    /* Update dummy answers to ensure visibility */
+    .dummy-answer {
+      position: absolute;
+      font-size: 12px;
+      color: rgba(173, 216, 230, 0.4);
+      opacity: 0;
+      animation: appear 1s forwards, dissolve 2s 5s forwards;
+      z-index: -1;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="landing" class="container">
+    <h1 class="typewriter">VOIA</h1>
+    <p class="tagline">Voyage of Thoughts</p>
+    <div class="haiku">
+      <div class="haiku-line">Thoughts across spaces,</div>
+      <div class="haiku-line">stories connecting us all,</div>
+      <div class="haiku-line">a shared mind's journey.</div>
+    </div>
+    <button class="button" onclick="startFallingText()">Start</button>
+  </div>
+
+  <div id="mode" class="container hidden">
+    <div class="expression-container">
+      <h1 class="typewriter" id="expression">
+        <!-- Letters will be added here -->
+      </h1>
+    </div>
+    <div class="button-container">
+      <button class="button" onclick="showSection('text')">Text</button>
+      <button class="button" onclick="showSection('audio')">Audio</button>
+      <button class="button" onclick="showSection('polls')">Polls</button>
+    </div>
+  </div>
+
+  <div id="text" class="container hidden">
+    <h1 class="typewriter">Text Response</h1>
+    <p id="textQuestion">Describe your perfect day.</p>
+    <textarea id="textInput" placeholder="Type your thought here..."></textarea>
+    <div class="button-container">
+      <button class="button" onclick="toggleQuestion('text')">Next Question</button>
+      <button class="button" onclick="showSection('mode')">Back</button>
+    </div>
+  </div>
+
+  <div id="audio" class="container hidden">
+    <h1 class="typewriter">Audio Response</h1>
+    <p id="audioQuestion">Describe a funny or memorable moment from your day.</p>
+    <textarea id="audioInput" placeholder="Type your thought here..."></textarea>
+    <div class="record-button">
+      <div class="record-icon"></div>
+    </div>
+    <div class="chat-box"></div>
+    <div class="button-container">
+      <button class="button" onclick="toggleQuestion('audio')">Next Question</button>
+      <button class="button" onclick="showSection('mode')">Back</button>
+    </div>
+  </div>
+
+  <div id="polls" class="container hidden">
+    <h1 class="typewriter">Polls</h1>
+    <p id="pollQuestion">Would you press a button to know the future?</p>
+    <div class="chat-box"></div>
+    <div class="poll-buttons">
+      <button class="poll-button" onclick="toggleQuestion('poll')">Yes</button>
+      <button class="poll-button" onclick="toggleQuestion('poll')">No</button>
+    </div>
+    <button class="button" onclick="showSection('mode')">Back</button>
+  </div>
+
+  <script>
+    function showSection(sectionId) {
+      // Hide all sections
+      document.querySelectorAll('.container').forEach(section => section.classList.add('hidden'));
+
+      // Show the selected section
+      const targetSection = document.getElementById(sectionId);
+      if (targetSection) {
+        targetSection.classList.remove('hidden');
+        console.log(`Section with ID '${sectionId}' is now visible`);
+      } else {
+        console.error(`Section with ID '${sectionId}' not found`);
+      }
+
+      // Scroll to the top of the page (optional)
+      window.scrollTo(0, 0);
+    }
+
+    const memories = [
+      "\"I still remember the smell of grandma's cookies every Sunday morning\"",
+      "\"That summer night when we danced in the rain\"",
+      "\"The last text I never replied to\"",
+      "\"Her laugh still echoes in empty rooms\"",
+      "\"The coffee cup you left half-full\"",
+      "\"Sometimes I write letters I'll never send\"",
+      "\"The way you looked at me when I wasn't looking\"",
+      "\"Three years of memories in one box under my bed\"",
+      "\"The song that played during our last dance\"",
+      "\"I wish I had said 'I love you' one more time\"",
+      "\"The empty swing still moves in the wind\"",
+      "\"Your jacket still hangs where you left it\"",
+      "\"That road trip where we got completely lost\"",
+      "\"The fortune cookie that predicted our goodbye\"",
+      "\"I kept every birthday card you ever gave me\"",
+      "\"The stars seemed brighter when we watched them together\"",
+      "\"Your number is still on speed dial\"",
+      "\"The book with all your margin notes\"",
+      "\"That pizza place where we had our first date\"",
+      "\"The playlist you made me still makes me cry\"",
+      "\"The laughter we shared over silly jokes\"",
+      "\"The warmth of your hug on a cold day\"",
+      "\"The way you smiled when you saw me\"",
+      "\"The long walks we took by the river\"",
+      "\"The stories you told me under the stars\"",
+      "\"The dreams we shared over coffee\"",
+      "\"The promises we made and kept\"",
+      "\"The songs we sang together\"",
+      "\"The adventures we planned\"",
+      "\"The quiet moments of understanding\""
+    ];
+
+    const textQuestions = [
+      "What is a song lyric that describes your current mood?",
+      "What is your favorite book and why?",
+      "Describe your perfect day.",
+      "What is a memory that makes you smile?",
+      "What is your biggest dream?",
+      "What is a quote that inspires you?",
+      "What is your favorite hobby?",
+      "What is a place you want to visit?",
+      "What is your favorite movie and why?",
+      "What is a lesson you've learned recently?"
+    ];
+
+    const audioQuestions = [
+      "Describe a funny or memorable moment from your day.",
+      "What is your favorite sound and why?",
+      "Tell us about a recent adventure.",
+      "What is a sound that makes you happy?",
+      "Describe a moment of kindness you experienced.",
+      "What is a sound that reminds you of home?",
+      "Tell us about a time you felt proud.",
+      "What is a sound that calms you?",
+      "Describe a moment of joy.",
+      "What is a sound that makes you laugh?"
+    ];
+
+    const pollQuestions = [
+      "Would you press a button to know the future?",
+      "Do you prefer cats or dogs?",
+      "Is pineapple on pizza acceptable?",
+      "Do you believe in aliens?",
+      "Is cereal a soup?",
+      "Do you prefer summer or winter?",
+      "Is a hotdog a sandwich?",
+      "Do you like pineapple on pizza?",
+      "Is water wet?",
+      "Do you prefer coffee or tea?"
+    ];
+
+    const textAnswers = [
+      [ // Song lyrics
+        "Dancing in the moonlight, feeling alive and free",
+        "The sun is shining, and so am I",
+        "Walking on sunshine, living my best life",
+        "Every little thing is gonna be alright",
+        "Life is a highway, and I'm enjoying the ride",
+        "Today is the beginning of anything you want",
+        "Feeling good as hell, can't bring me down",
+        "Just another day in paradise",
+        "Living my life like it's golden",
+        "The best is yet to come"
+      ],
+      [ // Favorite book
+        "To Kill a Mockingbird - a story of justice and compassion",
+        "1984 - a warning about power and control",
+        "Pride and Prejudice - timeless romance and wit",
+        "The Great Gatsby - dreams and human nature",
+        "Lord of the Rings - epic adventure and friendship",
+        "Harry Potter - magic and coming of age",
+        "The Alchemist - following your dreams",
+        "Dune - imagination and human potential",
+        "The Little Prince - wisdom in simplicity",
+        "Fahrenheit 451 - knowledge is power"
+      ],
+      [ // Perfect day
+        "Beach day with friends, waves and laughter",
+        "Hiking in nature, breathing fresh mountain air",
+        "Reading in a cozy cafe on a rainy day",
+        "Family gathering with good food and stories",
+        "Adventure in a new city, exploring streets",
+        "Quiet day at home with music and books",
+        "Picnic in the park, watching clouds drift by",
+        "Road trip with no destination in mind",
+        "Creating art while listening to favorite songs",
+        "Garden day, planting flowers and dreaming"
+      ],
+      [ // Memory that makes you smile
+        "First time riding a bike without training wheels",
+        "Surprise birthday party from best friends",
+        "Family vacation by the ocean",
+        "Graduating and celebrating with loved ones",
+        "Making cookies with grandma",
+        "First snowfall of winter",
+        "Road trip singalong with siblings",
+        "Winning the school talent show",
+        "Meeting my best friend for the first time",
+        "Learning to play my favorite song"
+      ],
+      [ // Biggest dream
+        "Travel the world and write about adventures",
+        "Open an animal sanctuary",
+        "Become a renowned artist",
+        "Start a successful business helping others",
+        "Write a bestselling novel",
+        "Build sustainable homes for communities",
+        "Create music that touches hearts",
+        "Discover something that changes lives",
+        "Start a school for underprivileged children",
+        "Live in different countries and learn cultures"
+      ],
+      [ // Inspiring quote
+        "Be the change you wish to see in the world",
+        "Every day is a new beginning",
+        "Stars can't shine without darkness",
+        "Life is what happens while making plans",
+        "Dream big, work hard, stay humble",
+        "The best is yet to come",
+        "Believe you can and you're halfway there",
+        "Make today amazing",
+        "Adventure awaits",
+        "Create your own sunshine"
+      ],
+      [ // Favorite hobby
+        "Photography - capturing life's moments",
+        "Gardening - watching things grow",
+        "Painting - expressing emotions through color",
+        "Writing - creating new worlds",
+        "Cooking - experimenting with flavors",
+        "Dancing - moving to the rhythm",
+        "Hiking - exploring nature's beauty",
+        "Reading - traveling through stories",
+        "Music - playing from the heart",
+        "Crafting - making something from nothing"
+      ],
+      [ // Place to visit
+        "Japan - cherry blossoms and temples",
+        "New Zealand - mountains and adventures",
+        "Italy - art and ancient history",
+        "Iceland - northern lights and waterfalls",
+        "India - colors and traditions",
+        "Greece - islands and mythology",
+        "Peru - Machu Picchu and culture",
+        "Australia - beaches and wildlife",
+        "Norway - fjords and midnight sun",
+        "Morocco - markets and desert magic"
+      ],
+      [ // Favorite movie
+        "The Shawshank Redemption - hope never dies",
+        "Inception - dreams within dreams",
+        "The Matrix - questioning reality",
+        "Forrest Gump - life is like a box of chocolates",
+        "The Lion King - circle of life",
+        "Star Wars - epic space adventure",
+        "The Godfather - family and loyalty",
+        "Avatar - connection with nature",
+        "The Dark Knight - good versus evil",
+        "La La Land - following your dreams"
+      ],
+      [ // Recent lesson
+        "Patience is truly a virtue",
+        "Kindness goes a long way",
+        "Change begins with small steps",
+        "Every mistake is a lesson",
+        "Time heals all wounds",
+        "Family comes first",
+        "Trust your intuition",
+        "Never stop learning",
+        "Live in the present moment",
+        "Happiness is a choice"
+      ]
+    ];
+
+    const audioAnswers = [
+      ["Laughter with friends over a silly joke that brightened my day.", "A surprise gift from a loved one that made me feel appreciated.", "A beautiful sunset that painted the sky with vibrant colors."],
+      ["Birds chirping in the morning, a gentle reminder of nature's beauty.", "Ocean waves crashing on the shore, a soothing and calming sound.", "Rainfall on the roof, a peaceful and relaxing melody to my ears."],
+      ["Hiking in the mountains, surrounded by nature's beauty and tranquility.", "Road trip with friends, filled with laughter, music, and adventure.", "Camping under the stars, a night of stories, marshmallows, and dreams."],
+      ["Music that uplifts my spirit and brings joy to my heart.", "Laughter of children playing, a sound that fills me with happiness.", "Nature sounds, a symphony of life that calms and rejuvenates me."],
+      ["A stranger's help when I was in need, a reminder of human kindness.", "A friend's support during tough times, a testament to true friendship.", "A kind gesture from a neighbor, a small act that made a big difference."],
+      ["Family gatherings at my childhood home, filled with love and warmth.", "Childhood home, where memories were made and laughter was shared.", "Favorite vacation spot, a place of relaxation and cherished moments."],
+      ["Graduation day, a moment of pride and accomplishment in my life.", "Winning a competition, a testament to hard work and dedication.", "Achieving a goal, a reminder that perseverance leads to success."],
+      ["Meditation music that soothes my mind and brings inner peace.", "Rain sounds that lull me to sleep and wash away my worries.", "Soft piano melodies that calm my soul and inspire creativity."],
+      ["A child's laughter, a pure and joyful sound that brightens my day.", "A beautiful view that takes my breath away and fills me with awe.", "A heartfelt moment shared with a loved one, a memory to cherish."],
+      ["A funny joke that had everyone in stitches and lifted our spirits.", "A comedy show that brought laughter and joy to the entire room.", "A friend's antics that never fail to make me smile and laugh."]
+    ];
+
+    const pollAnswers = [
+      ["Yes, curiosity is key, and knowing the future would be fascinating.", "No, I like surprises, and the mystery of life is what makes it exciting."],
+      ["Cats, they're independent, mysterious, and have a unique charm.", "Dogs, they're loyal, loving, and always ready for an adventure."],
+      ["Yes, it's delicious, and the sweet and savory combination is delightful.", "No, it's a crime, and it ruins a perfectly good pizza."],
+      ["Yes, the universe is vast, and the possibility of aliens is intriguing.", "No, it's unlikely, and there's no concrete evidence to support it."],
+      ["No, it's a breakfast, and it doesn't fit the traditional definition of soup.", "Yes, it's a soup, and it meets the requirements of a liquid dish."],
+      ["Summer, for the sun, and the warmth it brings to my soul.", "Winter, for the snow, and the beauty it creates in the world."],
+      ["Yes, it's a sandwich, and it meets the criteria of a filled bread.", "No, it's unique, and it doesn't fit the traditional definition of a sandwich."],
+      ["Yes, it's tasty, and the sweet and savory combination is delightful.", "No, it's wrong, and the flavors just don't work together."],
+      ["Yes, it's wet, and it meets the criteria of a liquid substance.", "No, it's not, and it doesn't fit the traditional definition of wet."],
+      ["Coffee, for the energy, and the boost it gives to my day.", "Tea, for the calm, and the relaxation it brings to my mind."]
+    ];
+
+    function initializeFallingText() {
+      const container = createFallingTextContainer();
+      document.body.appendChild(container);
+      container.style.display = 'block';
+
+      // Create initial set of falling texts
+      for (let i = 0; i < 20; i++) {
+        addFallingText(container);
+      }
+
+      // Add new texts every 1 second
+      setInterval(() => {
+        addFallingText(container);
+      }, 1000);
+
+      // Transition to "Choose Your Expression" page after 10 seconds
+      setTimeout(() => {
+        showSection('mode');
+      }, 10000); // 10000 milliseconds = 10 seconds
+    }
+
+    function createFallingTextContainer() {
+      const container = document.createElement('div');
+      container.className = 'falling-text-container';
+      return container;
+    }
+
+    function createFallingText(text, delay) {
+      const element = document.createElement('div');
+      element.className = 'falling-text';
+
+      // Set consistent font size
+      element.style.fontSize = '14px';
+
+      // Get unique memory
+      let uniqueMemory = getUniqueMemory();
+      element.textContent = uniqueMemory;
+
+      // Position calculation
+      const leftPosition = Math.random() * 80 + 10;
+      element.style.left = leftPosition + '%';
+      element.style.animationDelay = delay + 's';
+
+      // Randomize opacity and add glow
+      element.style.opacity = Math.random() * 0.5 + 0.5;
+      if (Math.random() > 0.7) {
+        element.classList.add('glow');
+      }
+
+      return element;
+    }
+
+    // Track used memories to prevent repetition
+    let usedMemories = new Set();
+
+    function getUniqueMemory() {
+      // Reset if all memories have been used
+      if (usedMemories.size >= memories.length) {
+        usedMemories.clear();
+      }
+
+      // Find an unused memory
+      let availableMemories = memories.filter(m => !usedMemories.has(m));
+      let memory = availableMemories[Math.floor(Math.random() * availableMemories.length)];
+
+      usedMemories.add(memory);
+      return memory;
+    }
+
+    function startFallingText() {
+      // Hide landing content
+      document.getElementById('landing').style.display = 'none';
+
+      // Show mode section (Choose Your Expression)
+      showSection('mode');
+
+      // Animate the "Choose Your Expression" text
+      animateExpression();
+    }
+
+    function addFallingText(container) {
+      const randomMemory = memories[Math.floor(Math.random() * memories.length)];
+      const delay = Math.random() * 2; // Start falling immediately
+      const text = createFallingText(randomMemory, delay);
+
+      // Ensure no overlap
+      const existingTexts = container.querySelectorAll('.falling-text');
+      let overlap;
+      do {
+        overlap = false;
+        const leftPosition = Math.random() * 80 + 10;
+        const topPosition = Math.random() * 80; // Randomize top position
+        text.style.left = leftPosition + '%';
+        text.style.top = topPosition + 'vh';
+
+        existingTexts.forEach(existingText => {
+          const rect1 = existingText.getBoundingClientRect();
+          const rect2 = text.getBoundingClientRect();
+          if (
+            rect1.left < rect2.right &&
+            rect1.right > rect2.left &&
+            rect1.top < rect2.bottom &&
+            rect1.bottom > rect2.top
+          ) {
+            overlap = true;
+          }
+        });
+      } while (overlap);
+
+      container.appendChild(text);
+    }
+
+    function animateExpression() {
+      const expression = "Choose Your Expression";
+      const container = document.getElementById('expression');
+      container.innerHTML = '';
+
+      expression.split('').forEach((char, index) => {
+        const span = document.createElement('span');
+        span.textContent = char;
+        span.className = 'fly-in';
+        span.style.setProperty('--random-x', Math.random() - 0.5);
+        span.style.setProperty('--random-y', Math.random() - 0.5);
+        span.style.animationDelay = `${index * 0.1}s`;
+        container.appendChild(span);
+      });
+    }
+
+    function toggleQuestion(type) {
+      let questions, questionElement, answers;
+      if (type === 'text') {
+        questions = textQuestions;
+        questionElement = document.getElementById('textQuestion');
+        answers = textAnswers;
+      } else if (type === 'audio') {
+        questions = audioQuestions;
+        questionElement = document.getElementById('audioQuestion');
+        answers = audioAnswers;
+      } else if (type === 'poll') {
+        questions = pollQuestions;
+        questionElement = document.getElementById('pollQuestion');
+        answers = pollAnswers;
+      }
+
+      const currentIndex = questions.indexOf(questionElement.textContent);
+      const nextIndex = (currentIndex + 1) % questions.length;
+      questionElement.textContent = questions[nextIndex];
+
+      // Start specific answers animation
+      startSpecificAnswers(type, answers[nextIndex]);
+    }
+
+    function startSpecificAnswers(type, answers) {
+      const container = document.querySelector(`#${type} .chat-box`);
+      container.innerHTML = '';
+
+      answers.forEach((answer, index) => {
+        setTimeout(() => {
+          const answerElement = document.createElement('div');
+          answerElement.className = 'dummy-answer';
+          answerElement.textContent = answer;
+          
+          // Position randomly but ensure visibility
+          const randomX = Math.random() * 60 + 20; // between 20% and 80%
+          const randomY = Math.random() * 60 + 20; // between 20% and 80%
+          
+          // Alternate between left and right side
+          if (index % 2 === 0) {
+            answerElement.style.left = '10%';
+          } else {
+            answerElement.style.right = '10%';
+          }
+          
+          answerElement.style.top = `${randomY}%`;
+          container.appendChild(answerElement);
+
+          // Add appear animation
+          setTimeout(() => {
+            answerElement.style.opacity = 0.6;
+          }, 1000);
+
+          // Dissolve effect
+          setTimeout(() => {
+            answerElement.style.transition = 'opacity 2s';
+            answerElement.style.opacity = 0;
+            setTimeout(() => answerElement.remove(), 2000);
+          }, 5000);
+        }, index * 1000);
+      });
+    }
+  </script>
+</body>
+
+</html>
